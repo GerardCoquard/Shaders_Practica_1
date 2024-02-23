@@ -85,6 +85,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _FoamDistance: 0.57
+    - _FoamMultiplier: 2.5
     - _FoamMutliplier: 2.5
     - _GlossMapScale: 1
     - _Glossiness: 0.5
