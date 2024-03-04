@@ -82,7 +82,7 @@ Material:
     m_Floats:
     - _Amplitude: 0.2
     - _Amplitude1: 0.2
-    - _Amplitude2: 0.2
+    - _Amplitude2: 0.1
     - _Amplitude3: 0.2
     - _BumpScale: 1
     - _Cutoff: 0.5
@@ -107,14 +107,15 @@ Material:
     - _SpeedWater2: 0.01
     - _SpeedWaves: 0.03
     - _SrcBlend: 1
+    - _Transparency: 0.5
     - _UVSec: 0
     - _UseHeightmap: 0
     - _Wave1Weight: 1
-    - _Wave2Weight: 1
-    - _Wave3Weight: 0.722
+    - _Wave2Weight: 0.333
+    - _Wave3Weight: 0.655
     - _WaveLength: 2
     - _WaveLength1: 2
-    - _WaveLength2: 4
+    - _WaveLength2: 1
     - _WaveLength3: 2
     - _WaveSpeed: 2
     - _WaveSpeed1: 2

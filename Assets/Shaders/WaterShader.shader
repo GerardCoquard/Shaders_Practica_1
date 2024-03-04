@@ -2,22 +2,27 @@
 {
 	Properties
 	{
+		[Header(TEXTURES)]
 		_MainTex("Main Texture", 2D) = "defaulttexture"{}
 		_WaterDepthTex("_WaterDepthTex", 2D) = "defaulttexture"{}
 		_FoamTex("_FoamTex", 2D) = "defaulttexture"{}
 		_NoiseTex("_NoiseTexture", 2D) = "defaulttexture"{}
 		_WaterHeightmapTex("_WaterHeightmapTex", 2D) = "defaulttexture"{}
+		[Header(COLOR)]
 		_DeepWaterColor("Deep Water Color", Color) = (1, 1, 1, 1)
 		_WaterColor("Water Color", Color) = (1, 1, 1, 1)
+		[Header(WATER)]
 		_SpeedWater1("_SpeedWater1", Float) = 0.05
 		[ShowAsVector2] _DirectionWater1("_DirectionWater1", Vector) = (0.3, -0.1, 0, 0)
 		_SpeedWater2("_SpeedWater2", Float) = 0.01
 		[ShowAsVector2] _DirectionWater2("_DirectionWater2", Vector) = (-0.4, 0.02, 0, 0)
+		[Header(FOAM)]
 		[ShowAsVector2] _DirectionNoise("_DirectionNoise", Vector) = (-0.18, 0.3, 0, 0)
 		_FoamDistance("_FoamDistance", Range(0.0, 1.0)) = 0.57
 		_SpeedFoam("_SpeedFoam", Float) = 0.03
 		_DirectionFoam("_DirectionFoam", Vector) = (1.5, 0, -0.3, 0.4)
 		_FoamMultiplier("_FoamMultiplier", Range(0.0, 5.0)) = 0.4
+		[Header(WAVES)]
 		_MaxHeightWater("_MaxHeightWater", Float) = 0.02
 		_SpeedWaves("_SpeedWaves", Float) = 0.03
 		_WaterDirection("_WaterDirection", Vector) = (0.01, 0, -0.005, 0.03)
@@ -40,16 +45,20 @@
 		_WaveLength3("Wave Length", Float) = 2
 		_WaveSpeed3("Wave Speed", Float) = 2
 		_Wave3Weight("Weight", Range(0.0, 1.0)) = 1
+		//AlphaBlend
+		[Header(Alpha Blend)]
+		_Transparency("Transparency", Range(0.0, 1.0)) = 1
 	}
 	SubShader
 	{
 		Tags{ "Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector" = "True" }
 		LOD 100
+		ZWrite Off
 
 		Pass
 		{
 			Blend SrcAlpha OneMinusSrcAlpha
-			ZWrite Off
+			
 
 			CGPROGRAM
 			#pragma vertex MyVS
@@ -116,6 +125,8 @@
 			float _WaveSpeed3;
 			float _Wave3Weight;
 
+			float _Transparency;
+
 			v2f MyVS(appdata v)
 			{
 				v2f o;
@@ -181,7 +192,7 @@
 				}
 
 
-				return float4(texColor.xyz * depthColor.xyz + foamColor,1);
+				return float4(texColor.xyz * depthColor.xyz + foamColor,_Transparency);
 			}
 			ENDCG
 		}
