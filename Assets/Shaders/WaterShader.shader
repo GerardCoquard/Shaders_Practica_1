@@ -21,6 +21,25 @@
 		_MaxHeightWater("_MaxHeightWater", Float) = 0.02
 		_SpeedWaves("_SpeedWaves", Float) = 0.03
 		_WaterDirection("_WaterDirection", Vector) = (0.01, 0, -0.005, 0.03)
+		//
+		[Toggle]_UseHeightmap("Use Heightmap", Float) = 1
+		[Header(First Wave)]
+		[ShowAsVector2] _Wave1Direction("_Direction", Vector) = (-0.4, 0.02, 0, 0)
+		_Amplitude1("Amplitude", Float) = 0.2
+		_WaveLength1("Wave Length", Float) = 2
+		_WaveSpeed1("Wave Speed", Float) = 2
+		_Wave1Weight("Weight", Range(0.0, 1.0)) = 1
+		[Header(Second Wave)]
+		[ShowAsVector2] _Wave2Direction("_Direction", Vector) = (-0.4, 0.02, 0, 0)
+		_Amplitude2("Amplitude", Float) = 0.2
+		_WaveLength2("Wave Length", Float) = 2
+		_WaveSpeed2("Wave Speed", Float) = 2
+		_Wave2Weight("Weight", Range(0.0, 1.0)) = 1
+		[Header(Center Direction Wave)]
+		_Amplitude3("Amplitude", Float) = 0.2
+		_WaveLength3("Wave Length", Float) = 2
+		_WaveSpeed3("Wave Speed", Float) = 2
+		_Wave3Weight("Weight", Range(0.0, 1.0)) = 1
 	}
 	SubShader
 	{
@@ -77,6 +96,25 @@
 			float _MaxHeightWater;
 			float _SpeedWaves;
 			float4 _WaterDirection;
+			int _UseHeightmap;
+
+			float4 _Wave1Direction;
+			float _Amplitude1;
+			float _WaveLength1;
+			float _WaveSpeed1;
+			float _Wave1Weight;
+
+			float4 _Wave2Direction;
+			float _Amplitude2;
+			float _WaveLength2;
+			float _WaveSpeed2;
+			float _Wave2Weight;
+
+			
+			float _Amplitude3;
+			float _WaveLength3;
+			float _WaveSpeed3;
+			float _Wave3Weight;
 
 			v2f MyVS(appdata v)
 			{
@@ -84,10 +122,27 @@
 				
 				o.vertex = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 
-				float2 wavesUV = TRANSFORM_TEX(v.uv, _WaterHeightmapTex);
-				float2 movedWaterUV = wavesUV + normalize(_WaterDirection.xy) * _SpeedWaves * _Time.y;
-				float l_Height = tex2Dlod(_WaterHeightmapTex, float4(movedWaterUV, 0, 0)).x * _MaxHeightWater;
-				o.vertex.y += l_Height;
+				if (_UseHeightmap)
+				{
+					float2 wavesUV = TRANSFORM_TEX(v.uv, _WaterHeightmapTex);
+					float2 movedWaterUV = wavesUV + normalize(_WaterDirection.xy) * _SpeedWaves * _Time.y;
+					float l_Height = tex2Dlod(_WaterHeightmapTex, float4(movedWaterUV, 0, 0)).x * _MaxHeightWater;
+					o.vertex.y += l_Height;
+				}
+				else
+				{
+					float l_frequency1 = 2 / _WaveLength1;
+					float l_frequency2 = 2 / _WaveLength2;
+					float l_frequency3 = 2 / _WaveLength3;
+					float2 l_CenterPosition = mul(unity_ObjectToWorld, float4(0.5, 0.5, 0.5, 1.0)).xz;
+					float2 dir = l_CenterPosition - o.vertex.xz;
+
+					float wave = (_Amplitude1 * sin(dot(o.vertex.xz, normalize(_Wave1Direction)) * l_frequency1 + _Time.y * l_frequency1 * _WaveSpeed1)) * _Wave1Weight
+								+ (_Amplitude2 * sin(dot(o.vertex.xz, normalize(_Wave2Direction)) * l_frequency2 + _Time.y * l_frequency2 * _WaveSpeed2)) * _Wave2Weight
+								+ (_Amplitude3 * sin(dot(o.vertex.xz,normalize(dir)) * l_frequency3 + _Time.y * l_frequency3 * _WaveSpeed3)) * _Wave3Weight;
+
+					o.vertex.y += wave;
+				}
 
 				o.vertex = mul(UNITY_MATRIX_V, o.vertex);
 				o.vertex = mul(UNITY_MATRIX_P, o.vertex);
@@ -122,13 +177,7 @@
 					float noiseTex = tex2D(_NoiseTex, noiseUV);
 
 					foamColor = (1- noiseTex) * foamTex;
-					
-
-					//float smooth = smoothstep(_FoamMultiplier, _FoamMultiplier - waterDepth, noiseColor);
-					//foamColor = foamColor * smooth;
 					foamColor = lerp(foamColor, 0, (1 - waterDepth) / (1 - _FoamDistance));
-					
-					//foamColor =  waterDepth - _FoamDistance;
 				}
 
 
