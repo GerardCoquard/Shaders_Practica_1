@@ -161,6 +161,7 @@
 			{
 				if (_UseHeightmap)
 				{
+					//Use heightmap texture to create waves
 					float2 wavesUV = TRANSFORM_TEX(_uv, _WaterHeightmapTex);
 					float2 movedWaterUV = wavesUV + normalize(_WaterDirection.xy) * _SpeedWaves * _Time.y;
 					float l_Height = tex2Dlod(_WaterHeightmapTex, float4(movedWaterUV, 0, 0)).x * _MaxHeightWater;
@@ -168,15 +169,17 @@
 				}
 				else
 				{
+					//Use sin to create waves
 					float l_frequency1 = 2 / _WaveLength1;
 					float l_frequency2 = 2 / _WaveLength2;
 					float l_frequency3 = 2 / _WaveLength3;
-					float2 l_CenterPosition = mul(unity_ObjectToWorld, float4(0.5, 0.5, 0.5, 1.0)).xz;
-					float2 dir = l_CenterPosition - pos.xz;
+					float2 l_CenterPosition = mul(unity_ObjectToWorld, float4(0.5, 0.5, 0.5, 0.5)).xz;
+					float2 dir = l_CenterPosition/4 - pos.xz;
 
+					//Sum all waves together
 					float wave = (_Amplitude1 * sin(dot(pos.xz, normalize(_Wave1Direction)) * l_frequency1 + _Time.y * l_frequency1 * _WaveSpeed1)) * _Wave1Weight
 						+ (_Amplitude2 * sin(dot(pos.xz, normalize(_Wave2Direction)) * l_frequency2 + _Time.y * l_frequency2 * _WaveSpeed2)) * _Wave2Weight
-						+ (_Amplitude3 * sin(dot(pos.xz, normalize(dir)) * l_frequency3 + _Time.y * l_frequency3 * _WaveSpeed3)) * _Wave3Weight;
+						+ (_Amplitude3 * sin(dot(pos.xz, normalize(-dir)) * l_frequency3 + _Time.y * l_frequency3 * _WaveSpeed3)) * _Wave3Weight;
 
 					return wave;
 				}
@@ -188,25 +191,25 @@
 				
 				o.vertex = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 
+				//Create Waves by modifying height
 				o.vertex.y += GetHeight(o.vertex, v.uv);
 				
 				o.worldPosition = o.vertex;
 
-				
-				// read neightbor heights using an arbitrary small offset
+				//Read neightbor heights
 				float3 off = float3(_normalCheckDistance, _normalCheckDistance, 0.0);
-				float hL = GetHeight(o.vertex.xyz - float3(off.xz, 0),v.uv);
+				float hL = GetHeight(o.vertex.xyz - float3(off.xz, 0), v.uv);
 				float hR = GetHeight(o.vertex.xyz + float3(off.xz, 0), v.uv);
 				float hD = GetHeight(o.vertex.xyz - float3(off.zy, 0), v.uv);
 				float hU = GetHeight(o.vertex.xyz + float3(off.zy, 0), v.uv);
 
-				// deduce terrain normal
+				//Aproximate normal
 				o.normal.x = hL - hR;
 				o.normal.y = hD - hU;
 				o.normal.z = 2.0;
 				o.normal = normalize(o.normal);
 				o.normal = -o.normal;
-
+				
 				o.vertex = mul(UNITY_MATRIX_V, o.vertex);
 				o.vertex = mul(UNITY_MATRIX_P, o.vertex);
 
@@ -242,9 +245,11 @@
 					foamColor = lerp(foamColor, 0, (1 - waterDepth) / (1 - _FoamDistance));
 				}
 
+				//Depth Alpha
 				float l_Depth = length(i.worldPosition - _WorldSpaceCameraPos);
 				float l_AlphaIntensity = saturate((l_Depth - _StartDistance) / (_EndDistance - _StartDistance));
 
+				//Lightning
 				float3 Nn = normalize(i.normal);
 				float4 l_color = float4(texColor.xyz * depthColor.xyz + foamColor, lerp(_MinTransparency, _MaxTransparency, l_AlphaIntensity));
 				float3 l_DifuseLighting = float3(0, 0, 0);
